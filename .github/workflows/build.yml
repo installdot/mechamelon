@@ -9,7 +9,7 @@ on:
 
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: windows-2022
 
     steps:
       - uses: actions/checkout@v4
@@ -17,7 +17,18 @@ jobs:
           submodules: recursive
 
       - name: Configure CMake (ChameleonChams subdir)
-        run: cmake -S ${{ github.workspace }}/ChameleonChams -B ${{ github.workspace }}/ChameleonChams/build -G "Visual Studio 17 2022" -A x64
+        run: cmake -S ${{ github.workspace }}/ChameleonChams -B ${{ github.workspace }}/ChameleonChams/build -G "Visual Studio 17 2022" -A x64 -T host=x64
+
+      - name: Locate Visual Studio (debug)
+        shell: pwsh
+        run: |
+          $vswhere = "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vswhere.exe"
+          if (Test-Path $vswhere) {
+            & $vswhere -all -products * -prerelease -format json | Out-File vs_instances.json
+            Get-Content vs_instances.json
+          } else {
+            Write-Output "vswhere.exe not found"
+          }
 
       - name: Build
         run: cmake --build ${{ github.workspace }}/ChameleonChams/build --config Release
